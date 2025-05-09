@@ -6,7 +6,7 @@
 #include <string_view>
 #include <unordered_map>
 
-namespace tsnl::scheme {
+namespace tsnl {
 
 class intstr {
 public:
@@ -52,4 +52,4 @@ inline intstr::operator std::string() const {
     return i2s_tab_[index_];
 }
 
-} // namespace tsnl::scheme
+} // namespace tsnl

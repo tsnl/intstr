@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-namespace tsnl::scheme {
+namespace tsnl {
 
 class intstr_test : public ::testing::Test {
 protected:
@@ -34,4 +34,4 @@ TEST_F(intstr_test, idempotence) {
     EXPECT_EQ(std::string(s3), "World");
 }
 
-} // namespace tsnl::scheme
+} // namespace tsnl
