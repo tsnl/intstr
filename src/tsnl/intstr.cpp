@@ -1,6 +1,6 @@
 #include "tsnl/intstr.hpp"
 
-namespace tsnl::scheme {
+namespace tsnl {
 
 std::shared_mutex intstr::mutex_;
 std::unordered_map<std::string_view, uint32_t> intstr::s2i_map_;
@@ -26,4 +26,4 @@ auto intstr::intern(std::string_view str) -> uint32_t {
     }
 }
 
-} // namespace tsnl::scheme
+} // namespace tsnl
