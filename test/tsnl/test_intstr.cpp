@@ -53,4 +53,9 @@ TEST_F(intstr_test, default_is_falsy) {
     EXPECT_EQ(std::string(s), "");
 }
 
+TEST_F(intstr_test, literal) {
+    using namespace tsnl::literals;
+    EXPECT_EQ("Hello"_is, intstr("Hello"));
+}
+
 } // namespace tsnl

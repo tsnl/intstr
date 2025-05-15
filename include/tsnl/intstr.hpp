@@ -17,7 +17,7 @@ public:
     auto operator=(intstr const&) -> intstr& = default;
     auto operator=(intstr&&) -> intstr& = default;
 
-    inline explicit intstr(uint32_t index);
+    inline explicit intstr(uint32_t id);
     inline explicit operator uint32_t() const;
 
     inline intstr(std::string_view str);
@@ -37,8 +37,14 @@ private:
     uint32_t index_ = 0;
 };
 
-inline intstr::intstr(uint32_t index)
-: index_(index) {
+namespace literals {
+    inline auto operator""_is(char const* str, size_t _) -> intstr {
+        return {std::string_view(str)};
+    }
+} // namespace literals
+
+inline intstr::intstr(uint32_t id)
+: index_(id) {
 }
 
 inline intstr::operator uint32_t() const {
