@@ -20,8 +20,16 @@ TEST_F(intstr_test, strong_ordering) {
 }
 
 TEST_F(intstr_test, operator_string) {
+    using namespace std::literals;
     intstr s("Hello");
-    EXPECT_EQ(std::string(s), "Hello");
+    EXPECT_EQ(std::string(s), "Hello"s);
+}
+
+TEST_F(intstr_test, operator_string_view) {
+    using namespace std::literals;
+    intstr s("");
+    EXPECT_FALSE(s);
+    EXPECT_EQ(std::string_view(s), ""sv);
 }
 
 TEST_F(intstr_test, idempotence) {

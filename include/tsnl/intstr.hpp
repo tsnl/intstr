@@ -22,6 +22,7 @@ public:
 
     inline intstr(std::string_view str);
     inline operator std::string() const;
+    inline operator std::string_view() const;
 
     [[nodiscard]] auto operator<=>(intstr const&) const = default;
     [[nodiscard]] inline operator bool() const;
@@ -49,6 +50,10 @@ inline intstr::intstr(std::string_view str)
 }
 
 inline intstr::operator std::string() const {
+    return std::string(std::string_view(*this));
+}
+
+inline intstr::operator std::string_view() const {
     if (index_ == 0) {
         return {};
     }
