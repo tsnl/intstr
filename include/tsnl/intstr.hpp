@@ -10,7 +10,7 @@ namespace tsnl {
 
 class intstr {
 public:
-    intstr() = delete;
+    intstr() = default;
     intstr(intstr const&) = default;
     intstr(intstr&&) = default;
 
@@ -24,6 +24,7 @@ public:
     inline operator std::string() const;
 
     [[nodiscard]] auto operator<=>(intstr const&) const = default;
+    [[nodiscard]] inline operator bool() const;
 
 private:
     static std::shared_mutex mutex_;
@@ -32,7 +33,7 @@ private:
 
     static auto intern(std::string_view str) -> uint32_t;
 
-    uint32_t index_;
+    uint32_t index_ = 0;
 };
 
 inline intstr::intstr(uint32_t index)
@@ -48,8 +49,15 @@ inline intstr::intstr(std::string_view str)
 }
 
 inline intstr::operator std::string() const {
+    if (index_ == 0) {
+        return {};
+    }
     std::shared_lock lock(mutex_);
-    return i2s_tab_[index_];
+    return i2s_tab_[index_ - 1];
+}
+
+[[nodiscard]] inline intstr::operator bool() const {
+    return index_ != 0;
 }
 
 } // namespace tsnl

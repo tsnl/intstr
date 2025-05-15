@@ -19,6 +19,11 @@ TEST_F(intstr_test, strong_ordering) {
     EXPECT_LT(s1, s2);
 }
 
+TEST_F(intstr_test, operator_string) {
+    intstr s("Hello");
+    EXPECT_EQ(std::string(s), "Hello");
+}
+
 TEST_F(intstr_test, idempotence) {
     intstr s1("Hello");
     intstr s2("Hello");
@@ -32,6 +37,12 @@ TEST_F(intstr_test, idempotence) {
 
     EXPECT_EQ(std::string(s1), "Hello");
     EXPECT_EQ(std::string(s3), "World");
+}
+
+TEST_F(intstr_test, default_is_falsy) {
+    intstr s;
+    EXPECT_FALSE(s);
+    EXPECT_EQ(std::string(s), "");
 }
 
 } // namespace tsnl
