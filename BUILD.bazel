@@ -7,10 +7,7 @@ compile_commands_targets = [
 
 cc_library(
     name = "tsnl.intstr",
-    srcs = [
-        "include/tsnl/intstr.hpp",
-        "src/tsnl/intstr.cpp",
-    ],
+    srcs = ["include/tsnl/intstr.hpp"],
     hdrs = ["include/tsnl/intstr.hpp"],
     includes = ["include"],
     visibility = ["//visibility:public"],

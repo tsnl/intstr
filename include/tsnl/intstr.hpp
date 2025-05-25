@@ -1,5 +1,6 @@
 #pragma once
 
+#include <concepts>
 #include <deque>
 #include <shared_mutex>
 #include <string>
@@ -8,67 +9,127 @@
 
 namespace tsnl {
 
-class intstr {
+template <std::unsigned_integral Integer>
+class basic_intstr {
 public:
-    intstr() = default;
-    intstr(intstr const&) = default;
-    intstr(intstr&&) = default;
+    using integer = Integer;
 
-    auto operator=(intstr const&) -> intstr& = default;
-    auto operator=(intstr&&) -> intstr& = default;
+    basic_intstr() = default;
+    basic_intstr(basic_intstr const&) = default;
+    basic_intstr(basic_intstr&&) = default;
 
-    inline explicit intstr(uint32_t id);
-    inline explicit operator uint32_t() const;
+    auto operator=(basic_intstr const&) -> basic_intstr& = default;
+    auto operator=(basic_intstr&&) -> basic_intstr& = default;
 
-    inline intstr(std::string_view str);
-    inline operator std::string() const;
-    inline operator std::string_view() const;
+    inline explicit basic_intstr(integer id);
+    inline basic_intstr(std::string_view str);
 
-    [[nodiscard]] auto operator<=>(intstr const&) const = default;
+    [[nodiscard]] inline auto id() const -> integer;
+
+    [[nodiscard]] inline operator std::string() const;
+    [[nodiscard]] inline operator std::string_view() const;
+    [[nodiscard]] inline explicit operator integer() const;
     [[nodiscard]] inline operator bool() const;
 
+    auto operator<=>(basic_intstr const&) const = default;
+
 private:
-    static std::shared_mutex mutex_;
-    static std::unordered_map<std::string_view, uint32_t> s2i_map_;
-    static std::deque<std::string> i2s_tab_;
+    inline static std::shared_mutex mutex_{};
+    inline static std::unordered_map<std::string_view, integer> s2i_map_{};
+    inline static std::deque<std::string> i2s_tab_{};
 
-    static auto intern(std::string_view str) -> uint32_t;
+    inline static auto intern(std::string_view str) -> integer;
 
-    uint32_t index_ = 0;
+    integer id_ = 0;
 };
 
-namespace literals {
-    inline auto operator""_is(char const* str, size_t _) -> intstr {
-        return {std::string_view(str)};
-    }
-} // namespace literals
+// Edit/patch the below line to change the size of 'intstr', e.g. to uint16_t, uint64_t, etc.
+class intstr : public basic_intstr<uint32_t> {
+public:
+    using basic_intstr::basic_intstr;
 
-inline intstr::intstr(uint32_t id)
-: index_(id) {
+    auto operator<=>(intstr const&) const = default;
+};
+
+template <std::unsigned_integral Integer>
+inline basic_intstr<Integer>::basic_intstr(integer id)
+: id_(id) {
 }
 
-inline intstr::operator uint32_t() const {
-    return index_;
+template <std::unsigned_integral Integer>
+inline auto basic_intstr<Integer>::id() const -> integer {
+    return id_;
 }
 
-inline intstr::intstr(std::string_view str)
-: index_(intern(str)) {
+template <std::unsigned_integral Integer>
+inline basic_intstr<Integer>::basic_intstr(std::string_view str)
+: id_(intern(str)) {
 }
 
-inline intstr::operator std::string() const {
+template <std::unsigned_integral Integer>
+inline basic_intstr<Integer>::operator integer() const {
+    return id_;
+}
+
+template <std::unsigned_integral Integer>
+inline basic_intstr<Integer>::operator std::string() const {
     return std::string(std::string_view(*this));
 }
 
-inline intstr::operator std::string_view() const {
-    if (index_ == 0) {
+template <std::unsigned_integral Integer>
+inline basic_intstr<Integer>::operator std::string_view() const {
+    if (id_ == 0) {
         return {};
     }
     std::shared_lock lock(mutex_);
-    return i2s_tab_[index_ - 1];
+    return i2s_tab_[id_ - 1];
 }
 
-[[nodiscard]] inline intstr::operator bool() const {
-    return index_ != 0;
+template <std::unsigned_integral Integer>
+inline basic_intstr<Integer>::operator bool() const {
+    return id_ != 0;
+}
+
+template <std::unsigned_integral Integer>
+inline auto basic_intstr<Integer>::intern(std::string_view str) -> integer {
+    // If the string is empty, return the special ID 0, representing the falsy empty string:
+    {
+        if (str.empty()) {
+            return 0;
+        }
+    }
+
+    // Try looking up all interned strings with a read lock first:
+    {
+        std::shared_lock lock(mutex_);
+        auto it = s2i_map_.find(str);
+        if (it != s2i_map_.end()) {
+            return it->second;
+        }
+    }
+
+    // If not found, acquire a write lock to add the new string:
+    {
+        std::unique_lock lock(mutex_);
+        integer id = 1 + i2s_tab_.size();
+        i2s_tab_.emplace_back(str);
+        s2i_map_.emplace(i2s_tab_.back(), id);
+        return id;
+    }
 }
 
 } // namespace tsnl
+
+namespace tsnl::literals {
+inline auto operator""_is(char const* str, size_t n) -> intstr {
+    return {std::string_view(str, n)};
+}
+} // namespace tsnl::literals
+
+template <>
+struct ::std::hash<::tsnl::intstr> {
+    auto operator()(::tsnl::intstr intstr) const {
+        auto intstr_id = intstr.id();
+        return ::std::hash<decltype(intstr_id)>{}(intstr_id);
+    }
+};
