@@ -112,6 +112,27 @@ TEST_F(intstr_test, hashable) {
     }
 }
 
+TEST_F(intstr_test, comparable) {
+    constexpr size_t iter_count = 128;
+
+    std::map<intstr, uint32_t> name_to_value_map;
+
+    for (size_t n = 0; n < iter_count; n++) {
+        auto s = "v_" + std::to_string(n);
+        auto i = intstr(s);
+        name_to_value_map.emplace(i, n);
+    }
+
+    for (size_t n = 0; n < iter_count; n++) {
+        auto s = "v_" + std::to_string(n);
+        auto i = intstr(s);
+        auto p = name_to_value_map.find(i);
+        EXPECT_NE(p, name_to_value_map.end());
+        EXPECT_EQ(p->first, i);
+        EXPECT_EQ(p->second, n);
+    }
+}
+
 TEST_F(intstr_test, readme_demo) {
     using namespace tsnl::literals;
 
